@@ -101,7 +101,7 @@ def get_models():
 @login_required
 def get_status():
     """Проверяет статус AI сервиса"""
-    api_key = 'sk-5758306f6613455195040916a065ca7a'
+    api_key = 'sk-'
     
     if not api_key:
         return jsonify({
