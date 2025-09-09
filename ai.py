@@ -23,7 +23,7 @@ def chat():
             return jsonify({'error': 'Message is required'}), 400
         
         # Получаем API ключ из переменных окружения
-        api_key = 'sk-5758306f6613455195040916a065ca7a'
+        api_key = 'sk-'
         
         if not api_key:
             return jsonify({'error': 'AI service not configured'}), 500
