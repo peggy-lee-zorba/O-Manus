@@ -37,7 +37,7 @@ def chat():
         }
 
         payload = {
-            'model': 'deepseek/deepseek-r1-0528-qwen3-8b:free',  # OpenRouter формат модели
+            'model': 'z-ai/glm-4.5-air:free',  # OpenRouter формат модели
             'messages': [
                 {
                     'role': 'system',
