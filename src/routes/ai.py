@@ -18,20 +18,55 @@ def login_required(f):
 def chat():
     try:
         data = request.json
-        
+
         if not data or not data.get('message'):
             return jsonify({'error': 'Message is required'}), 400
-        
+
         # Получаем API ключ из переменных окружения
         api_key = os.getenv('DEEPSEEK_API_KEY')
-        
+
         if not api_key:
             return jsonify({'error': 'AI service not configured'}), 500
-        
-        # Остальной код без изменений...
-        # [Сохраняем логику запроса к DeepSeek API]
-        
+
+        # Запрос к DeepSeek API
+        headers = {
+            'Authorization': f'Bearer {api_key}',
+            'Content-Type': 'application/json'
+        }
+
+        payload = {
+            'model': 'deepseek-chat',
+            'messages': [
+                {
+                    'role': 'system',
+                    'content': 'You are a business analytics assistant. Help users with data analysis, market research, business strategy, and insights. Provide clear, actionable recommendations.'
+                },
+                {
+                    'role': 'user',
+                    'content': data['message']
+                }
+            ],
+            'max_tokens': 1000,
+            'temperature': 0.7
+        }
+
+        response = requests.post(
+            'https://api.deepseek.com/v1/chat/completions',
+            headers=headers,
+            json=payload,
+            timeout=30
+        )
+
+        if response.status_code == 200:
+            result = response.json()
+            ai_response = result['choices'][0]['message']['content']
+            return jsonify({'response': ai_response})
+        else:
+            return jsonify({'error': f'AI service error: {response.status_code}'}), 500
+
+    except requests.exceptions.Timeout:
+        return jsonify({'error': 'AI service timeout'}), 504
+    except requests.exceptions.RequestException as e:
+        return jsonify({'error': f'AI service request failed: {str(e)}'}), 500
     except Exception as e:
         return jsonify({'error': f'Internal error: {str(e)}'}), 500
-
-# Остальные маршруты без изменений...

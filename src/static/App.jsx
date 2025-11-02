@@ -1,11 +1,4 @@
 import { useState, useEffect } from 'react'
-import { Button } from '@/components/ui/button.jsx'
-import { Input } from '@/components/ui/input.jsx'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card.jsx'
-import { Badge } from '@/components/ui/badge.jsx'
-import { ScrollArea } from '@/components/ui/scroll-area.jsx'
-import { Separator } from '@/components/ui/separator.jsx'
-import { BarChart3, MessageSquare, User, LogOut, Send, Bot, TrendingUp } from 'lucide-react'
 import './App.css'
 
 function App() {
@@ -109,43 +102,43 @@ function App() {
   if (!user) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
-        <Card className="w-full max-w-md">
-          <CardHeader className="text-center">
+        <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
+          <div className="text-center mb-6">
             <div className="flex items-center justify-center mb-4">
-              <BarChart3 className="h-8 w-8 text-blue-600 mr-2" />
+              <span className="text-2xl mr-2">📊</span>
               <h1 className="text-2xl font-bold text-gray-900">Business Analytics</h1>
             </div>
-            <CardDescription>
+            <p className="text-gray-600">
               Advanced analytics platform for business intelligence
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleLogin} className="space-y-4">
-              <div>
-                <Input
-                  type="text"
-                  placeholder="Username"
-                  value={loginForm.username}
-                  onChange={(e) => setLoginForm({...loginForm, username: e.target.value})}
-                  required
-                />
-              </div>
-              <div>
-                <Input
-                  type="password"
-                  placeholder="Password"
-                  value={loginForm.password}
-                  onChange={(e) => setLoginForm({...loginForm, password: e.target.value})}
-                  required
-                />
-              </div>
-              <Button type="submit" className="w-full">
-                <User className="h-4 w-4 mr-2" />
-                Login
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
+            </p>
+          </div>
+          <form onSubmit={handleLogin} className="space-y-4">
+            <div>
+              <input
+                type="text"
+                placeholder="Username"
+                value={loginForm.username}
+                onChange={(e) => setLoginForm({...loginForm, username: e.target.value})}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                required
+              />
+            </div>
+            <div>
+              <input
+                type="password"
+                placeholder="Password"
+                value={loginForm.password}
+                onChange={(e) => setLoginForm({...loginForm, password: e.target.value})}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                required
+              />
+            </div>
+            <button type="submit" className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 flex items-center justify-center">
+              <span className="mr-2">👤</span>
+              Login
+            </button>
+          </form>
+        </div>
       </div>
     )
   }
@@ -156,23 +149,23 @@ function App() {
       <header className="bg-white border-b border-gray-200 px-6 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center">
-            <BarChart3 className="h-8 w-8 text-blue-600 mr-3" />
+            <span className="text-2xl mr-3">📊</span>
             <div>
               <h1 className="text-xl font-semibold text-gray-900">Business Analytics Platform</h1>
               <p className="text-sm text-gray-500">Advanced AI-powered insights</p>
             </div>
           </div>
           <div className="flex items-center space-x-4">
-            <Badge variant="secondary" className="flex items-center">
-              <TrendingUp className="h-3 w-3 mr-1" />
+            <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs flex items-center">
+              <span className="mr-1">📈</span>
               Active
-            </Badge>
+            </span>
             <div className="flex items-center space-x-2">
               <span className="text-sm text-gray-600">Welcome, {user.username}</span>
-              <Button variant="outline" size="sm" onClick={handleLogout}>
-                <LogOut className="h-4 w-4 mr-2" />
+              <button onClick={handleLogout} className="border border-gray-300 text-gray-700 px-3 py-1 rounded-md text-sm hover:bg-gray-50 flex items-center">
+                <span className="mr-2">🚪</span>
                 Logout
-              </Button>
+              </button>
             </div>
           </div>
         </div>
@@ -190,62 +183,54 @@ function App() {
           </div>
           
           <div className="space-y-4">
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm">Quick Actions</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className="w-full justify-start"
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <h3 className="text-sm font-medium text-gray-900 mb-3">Quick Actions</h3>
+              <div className="space-y-2">
+                <button
+                  className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md flex items-center"
                   onClick={() => setCurrentMessage('Analyze sales trends for this quarter')}
                 >
-                  <TrendingUp className="h-4 w-4 mr-2" />
+                  <span className="mr-2">📈</span>
                   Sales Analysis
-                </Button>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className="w-full justify-start"
+                </button>
+                <button
+                  className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md flex items-center"
                   onClick={() => setCurrentMessage('Generate a market research report')}
                 >
-                  <BarChart3 className="h-4 w-4 mr-2" />
+                  <span className="mr-2">📊</span>
                   Market Research
-                </Button>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className="w-full justify-start"
+                </button>
+                <button
+                  className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md flex items-center"
                   onClick={() => setCurrentMessage('Create a business strategy presentation')}
                 >
-                  <MessageSquare className="h-4 w-4 mr-2" />
+                  <span className="mr-2">💬</span>
                   Strategy Planning
-                </Button>
-              </CardContent>
-            </Card>
+                </button>
+              </div>
+            </div>
           </div>
         </div>
 
         {/* Chat Area */}
         <div className="flex-1 flex flex-col">
           <div className="flex-1 p-6">
-            <Card className="h-full flex flex-col">
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Bot className="h-5 w-5 mr-2 text-blue-600" />
+            <div className="bg-white rounded-lg shadow-sm h-full flex flex-col border border-gray-200">
+              <div className="p-6 border-b border-gray-200">
+                <h2 className="text-lg font-semibold text-gray-900 flex items-center">
+                  <span className="text-blue-600 mr-2">🤖</span>
                   AI Assistant
-                </CardTitle>
-                <CardDescription>
+                </h2>
+                <p className="text-sm text-gray-600 mt-1">
                   Ask questions about business analytics, data insights, or request reports
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="flex-1 flex flex-col">
-                <ScrollArea className="flex-1 pr-4">
+                </p>
+              </div>
+              <div className="flex-1 flex flex-col p-6">
+                <div className="flex-1 overflow-y-auto pr-4">
                   {messages.length === 0 ? (
                     <div className="flex items-center justify-center h-full text-gray-500">
                       <div className="text-center">
-                        <Bot className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                        <span className="text-5xl mb-4 block">🤖</span>
                         <p>Start a conversation with the AI assistant</p>
                         <p className="text-sm mt-2">Ask about analytics, trends, or business insights</p>
                       </div>
@@ -255,8 +240,8 @@ function App() {
                       {messages.map((message, index) => (
                         <div key={index} className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                           <div className={`max-w-[80%] p-3 rounded-lg ${
-                            message.role === 'user' 
-                              ? 'bg-blue-600 text-white' 
+                            message.role === 'user'
+                              ? 'bg-blue-600 text-white'
                               : 'bg-gray-100 text-gray-900'
                           }`}>
                             <p className="text-sm whitespace-pre-wrap">{message.content}</p>
@@ -275,24 +260,30 @@ function App() {
                       )}
                     </div>
                   )}
-                </ScrollArea>
-                
-                <Separator className="my-4" />
-                
+                </div>
+
+                <hr className="my-4 border-gray-200" />
+
                 <div className="flex space-x-2">
-                  <Input
+                  <input
+                    type="text"
                     placeholder="Ask about analytics, trends, or business insights..."
                     value={currentMessage}
                     onChange={(e) => setCurrentMessage(e.target.value)}
                     onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
                     disabled={isLoading}
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
-                  <Button onClick={sendMessage} disabled={isLoading || !currentMessage.trim()}>
-                    <Send className="h-4 w-4" />
-                  </Button>
+                  <button
+                    onClick={sendMessage}
+                    disabled={isLoading || !currentMessage.trim()}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center"
+                  >
+                    <span>📤</span>
+                  </button>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           </div>
         </div>
       </div>
