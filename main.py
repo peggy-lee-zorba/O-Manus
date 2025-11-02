@@ -14,9 +14,18 @@ CORS(app, supports_credentials=True)
 from src.routes.user import db
 db.init_app(app)
 
-# Create tables
+# Create tables and default user
 with app.app_context():
     db.create_all()
+
+    # Create default user if none exists
+    from src.routes.user import User
+    if not User.query.first():
+        default_user = User(username='testuser', email='testuser@example.com')
+        default_user.set_password('testuser2025')
+        db.session.add(default_user)
+        db.session.commit()
+        print("✓ Default user created: testuser / testuser2025")
 
 # Регистрация маршрутов
 from src.routes.user import user_bp

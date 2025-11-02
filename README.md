@@ -42,6 +42,15 @@ python main.py
 
 The application will be available at `http://localhost:5000`
 
+### Default Login Credentials
+
+When you first run the application, a default user is automatically created:
+
+- **Username:** `admin`
+- **Password:** `admin123`
+
+You can use these credentials to log in, or register a new account through the application interface.
+
 ## Deployment on Render
 
 1. Connect your GitHub repository to Render
