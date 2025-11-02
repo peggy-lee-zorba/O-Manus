@@ -15,7 +15,7 @@ Create a `.env` file in the root directory (copy from `.env.example`):
 
 ```
 SECRET_KEY=your-secret-key-here
-DEEPSEEK_API_KEY=your-deepseek-api-key-here
+DEEPSEEK_API_KEY=your-openrouter-api-key-here
 FLASK_DEBUG=True
 ```
 

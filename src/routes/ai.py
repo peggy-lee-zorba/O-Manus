@@ -28,14 +28,16 @@ def chat():
         if not api_key:
             return jsonify({'error': 'AI service not configured'}), 500
 
-        # Запрос к DeepSeek API
+        # Запрос к OpenRouter API (маршрутизация через OpenRouter)
         headers = {
             'Authorization': f'Bearer {api_key}',
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'HTTP-Referer': 'https://your-app-domain.com',  # Замените на ваш домен
+            'X-Title': 'Business Analytics App'
         }
 
         payload = {
-            'model': 'deepseek-chat',
+            'model': 'deepseek/deepseek-chat-v3.1:free',  # OpenRouter формат модели
             'messages': [
                 {
                     'role': 'system',
@@ -51,7 +53,7 @@ def chat():
         }
 
         response = requests.post(
-            'https://api.deepseek.com/v1/chat/completions',
+            'https://openrouter.ai/api/v1/chat/completions',
             headers=headers,
             json=payload,
             timeout=30
