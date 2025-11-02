@@ -1,6 +1,6 @@
 # Business Analytics App
 
-AI-powered business analytics platform with DeepSeek integration.
+AI-powered business analytics platform with OpenRouter integration.
 
 ## Setup
 
@@ -22,7 +22,7 @@ FLASK_DEBUG=True
 ## Features
 
 - **User Authentication**: Login/logout system with session management
-- **AI Chat**: Business analytics assistant powered by DeepSeek AI
+- **AI Chat**: Business analytics assistant powered by AI
 - **Modern UI**: Responsive React interface with Tailwind CSS
 - **Database**: SQLite database with SQLAlchemy ORM
 

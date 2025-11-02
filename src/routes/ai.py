@@ -37,7 +37,7 @@ def chat():
         }
 
         payload = {
-            'model': 'deepseek/deepseek-chat-v3.1:free',  # OpenRouter формат модели
+            'model': 'qwen/qwen3-coder:free',  # OpenRouter формат модели
             'messages': [
                 {
                     'role': 'system',
