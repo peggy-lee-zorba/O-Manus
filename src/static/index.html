@@ -22,6 +22,7 @@
             const [isLoading, setIsLoading] = useState(false);
             const [loginForm, setLoginForm] = useState({ username: '', password: '' });
             const [selectedModel, setSelectedModel] = useState('z-ai/glm-4.5-air:free');
+            const [contextStatus, setContextStatus] = useState('Контекст: 0/10 сообщений');
 
             const models = [
                 { id: 'z-ai/glm-4.5-air:free', name: 'GLM 4.5 Air (Z-AI)' },
@@ -87,6 +88,48 @@
                 }
             };
 
+            const updateContextStatus = async (model) => {
+                try {
+                    const response = await fetch(`/api/context/status?model=${encodeURIComponent(model)}`, {
+                        credentials: 'include'
+                    });
+                    if (response.ok) {
+                        const data = await response.json();
+                        setContextStatus(data.status);
+                    }
+                } catch (error) {
+                    console.error('Failed to get context status:', error);
+                }
+            };
+
+            const resetContext = async () => {
+                try {
+                    const response = await fetch('/api/context/reset', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        credentials: 'include',
+                        body: JSON.stringify({ model: selectedModel }),
+                    });
+                    if (response.ok) {
+                        const data = await response.json();
+                        setContextStatus(data.status);
+                        alert('Контекст сброшен');
+                    } else {
+                        alert('Ошибка сброса контекста');
+                    }
+                } catch (error) {
+                    alert('Network error');
+                }
+            };
+
+            useEffect(() => {
+                if (user) {
+                    updateContextStatus(selectedModel);
+                }
+            }, [selectedModel, user]);
+
             const sendMessage = async () => {
                 if (!currentMessage.trim() || isLoading) return;
 
@@ -109,6 +152,9 @@
                         const data = await response.json();
                         const aiMessage = { role: 'assistant', content: data.response };
                         setMessages(prev => [...prev, aiMessage]);
+                        if (data.context_status) {
+                            setContextStatus(data.context_status);
+                        }
                     } else {
                         const error = await response.json();
                         const errorMessage = { role: 'assistant', content: `Error: ${error.error}` };
@@ -216,6 +262,15 @@
                                             </option>
                                         ))}
                                     </select>
+                                    <div className="mt-3 flex items-center justify-between">
+                                        <span className="text-xs text-gray-600">{contextStatus}</span>
+                                        <button
+                                            onClick={resetContext}
+                                            className="text-xs bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600"
+                                        >
+                                            Сбросить
+                                        </button>
+                                    </div>
                                 </div>
 
                                 <div className="bg-gray-50 p-4 rounded-lg">
