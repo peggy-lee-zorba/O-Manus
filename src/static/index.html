@@ -102,6 +102,35 @@
                 }
             };
 
+            const loadMessages = async (model) => {
+                try {
+                    const response = await fetch(`/api/messages?model=${encodeURIComponent(model)}`, {
+                        credentials: 'include'
+                    });
+                    if (response.ok) {
+                        const data = await response.json();
+                        setMessages(data.messages);
+                    }
+                } catch (error) {
+                    console.error('Failed to load messages:', error);
+                }
+            };
+
+            const saveMessages = async (model, messages) => {
+                try {
+                    await fetch('/api/messages', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        credentials: 'include',
+                        body: JSON.stringify({ model, messages }),
+                    });
+                } catch (error) {
+                    console.error('Failed to save messages:', error);
+                }
+            };
+
             const resetContext = async () => {
                 try {
                     const response = await fetch('/api/context/reset', {
@@ -115,6 +144,7 @@
                     if (response.ok) {
                         const data = await response.json();
                         setContextStatus(data.status);
+                        setMessages([]); // Очищаем сообщения в UI
                         alert('Контекст сброшен');
                     } else {
                         alert('Ошибка сброса контекста');
@@ -127,6 +157,7 @@
             useEffect(() => {
                 if (user) {
                     updateContextStatus(selectedModel);
+                    loadMessages(selectedModel);
                 }
             }, [selectedModel, user]);
 
@@ -151,7 +182,9 @@
                     if (response.ok) {
                         const data = await response.json();
                         const aiMessage = { role: 'assistant', content: data.response };
-                        setMessages(prev => [...prev, aiMessage]);
+                        const updatedMessages = [...messages, userMessage, aiMessage];
+                        setMessages(updatedMessages);
+                        saveMessages(selectedModel, updatedMessages); // Сохраняем на сервер
                         if (data.context_status) {
                             setContextStatus(data.context_status);
                         }
@@ -308,7 +341,7 @@
                                     <div className="p-6 border-b border-gray-200">
                                         <h2 className="text-lg font-semibold text-gray-900 flex items-center">
                                             <span className="text-blue-600 mr-2">🤖</span>
-                                            AI Assistant
+                                            AI Assistant - {models.find(m => m.id === selectedModel)?.name || selectedModel}
                                         </h2>
                                         <p className="text-sm text-gray-600 mt-1">
                                             Ask questions about business analytics, data insights, or request reports

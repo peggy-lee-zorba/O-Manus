@@ -123,6 +123,30 @@ def reset_context():
     data = request.json or {}
     model = data.get('model', 'z-ai/glm-4.5-air:free')
     context_key = f'context_{model}'
+    messages_key = f'messages_{model}'
 
     session[context_key] = []
+    session[messages_key] = []
     return jsonify({'message': 'Контекст сброшен', 'status': 'Контекст: 0/10 сообщений'})
+
+@ai_bp.route('/messages', methods=['GET'])
+@login_required
+def get_messages():
+    model = request.args.get('model', 'z-ai/glm-4.5-air:free')
+    messages_key = f'messages_{model}'
+
+    if messages_key not in session:
+        session[messages_key] = []
+
+    return jsonify({'messages': session[messages_key]})
+
+@ai_bp.route('/messages', methods=['POST'])
+@login_required
+def save_messages():
+    data = request.json or {}
+    model = data.get('model', 'z-ai/glm-4.5-air:free')
+    messages = data.get('messages', [])
+    messages_key = f'messages_{model}'
+
+    session[messages_key] = messages
+    return jsonify({'message': 'Сообщения сохранены'})
