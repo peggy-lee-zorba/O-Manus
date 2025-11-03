@@ -22,6 +22,9 @@ def chat():
         if not data or not data.get('message'):
             return jsonify({'error': 'Message is required'}), 400
 
+        # Получаем модель из запроса, по умолчанию используем GLM
+        model = data.get('model', 'z-ai/glm-4.5-air:free')
+
         # Получаем API ключ из переменных окружения
         api_key = os.getenv('DEEPSEEK_API_KEY')
 
@@ -37,7 +40,7 @@ def chat():
         }
 
         payload = {
-            'model': 'z-ai/glm-4.5-air:free',
+            'model': model,
             'messages': [
                 {
                     'role': 'system',
