@@ -28,14 +28,16 @@ def chat():
         if not api_key:
             return jsonify({'error': 'AI service not configured'}), 500
 
-        # Запрос к AgentRouter API
+        # Запрос к OpenRouter API
         headers = {
             'Authorization': f'Bearer {api_key}',
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'HTTP-Referer': 'https://your-app-domain.com',
+            'X-Title': 'Business Analytics App'
         }
 
         payload = {
-            'model': 'deepseek-v3.2',
+            'model': 'z-ai/glm-4.5-air:free',
             'messages': [
                 {
                     'role': 'system',
@@ -51,7 +53,7 @@ def chat():
         }
 
         response = requests.post(
-            'https://agentrouter.org/api/v1/chat/completions',
+            'https://openrouter.ai/api/v1/chat/completions',
             headers=headers,
             json=payload,
             timeout=30
