@@ -10,17 +10,18 @@ app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-secret-key')
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'sqlite:///app.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-app.config['SESSION_TYPE'] = 'sqlalchemy'
-app.config['SESSION_SQLALCHEMY'] = db
-app.config['SESSION_PERMANENT'] = True
-app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=7)
-
 CORS(app, supports_credentials=True)
-Session(app)
 
 # Initialize database
 from src.routes.user import db
 db.init_app(app)
+
+# Setup session
+app.config['SESSION_TYPE'] = 'sqlalchemy'
+app.config['SESSION_SQLALCHEMY'] = db
+app.config['SESSION_PERMANENT'] = True
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=7)
+Session(app)
 
 # Create tables and default user
 with app.app_context():
