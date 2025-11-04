@@ -5,11 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Business Analytics Platform</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <link rel="stylesheet" href="App.css">
 </head>
 <body>
     <div id="root"></div>
@@ -18,92 +16,278 @@
         const { useState, useEffect } = React;
 
         function App() {
-            const [user, setUser] = useState({ username: 'DemoUser' }); // Mock user for design
-            const [messages, setMessages] = useState([
-                { role: 'assistant', content: 'Добро пожаловать в Business Analytics Platform! Я ваш ИИ-ассистент для анализа данных и бизнес-аналитики. Чем могу помочь?' },
-                { role: 'user', content: 'Покажи мне анализ продаж за последний квартал' },
-                { role: 'assistant', content: 'Анализирую данные по продажам за Q4 2024...' }
-            ]);
+            const [user, setUser] = useState(null);
+            const [messages, setMessages] = useState([]);
             const [currentMessage, setCurrentMessage] = useState('');
             const [isLoading, setIsLoading] = useState(false);
+            const [loginForm, setLoginForm] = useState({ username: '', password: '' });
             const [selectedModel, setSelectedModel] = useState('z-ai/glm-4.5-air:free');
-            const [contextStatus, setContextStatus] = useState('Контекст: 3/10 сообщений');
+            const [contextStatus, setContextStatus] = useState('Контекст: 0/10 сообщений');
 
             const models = [
                 { id: 'z-ai/glm-4.5-air:free', name: 'GLM 4.5 Air (Z-AI)' },
                 { id: 'deepseek/deepseek-chat-v3.1:free', name: 'DeepSeek Chat v3.1' },
+                { id: 'deepseek/deepseek-r1-0528-qwen3-8b:free', name: 'DeepSeek R1 + Qwen3 8B' },
+                { id: 'qwen/qwen3-coder:free', name: 'Qwen3 Coder' },
+                { id: 'moonshotai/kimi-k2:free', name: 'Kimi K2 (Moonshot AI)' }
             ];
 
-            // Mock functions for now
-            const handleLogout = () => setUser(null);
-            const resetContext = () => {
-                setMessages([]);
-                setContextStatus('Контекст: 0/10 сообщений');
+            useEffect(() => {
+                checkAuth();
+            }, []);
+
+            const checkAuth = async () => {
+                try {
+                    const response = await fetch('/api/me', {
+                        credentials: 'include'
+                    });
+                    if (response.ok) {
+                        const userData = await response.json();
+                        setUser(userData);
+                    }
+                } catch (error) {
+                    console.error('Auth check failed:', error);
+                }
             };
-            const sendMessage = () => {
-                if (!currentMessage.trim()) return;
-                const newUserMessage = { role: 'user', content: currentMessage };
-                setMessages(prev => [...prev, newUserMessage]);
+
+            const handleLogin = async (e) => {
+                e.preventDefault();
+                try {
+                    const response = await fetch('/api/login', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        credentials: 'include',
+                        body: JSON.stringify(loginForm),
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        setUser(data.user);
+                        setLoginForm({ username: '', password: '' });
+                    } else {
+                        const error = await response.json();
+                        alert(error.error || 'Login failed');
+                    }
+                } catch (error) {
+                    alert('Network error');
+                }
+            };
+
+            const handleLogout = async () => {
+                try {
+                    await fetch('/api/logout', {
+                        method: 'POST',
+                        credentials: 'include'
+                    });
+                    setUser(null);
+                    setMessages([]);
+                } catch (error) {
+                    console.error('Logout failed:', error);
+                }
+            };
+
+            const updateContextStatus = async (model) => {
+                try {
+                    const response = await fetch(`/api/context/status?model=${encodeURIComponent(model)}`, {
+                        credentials: 'include'
+                    });
+                    if (response.ok) {
+                        const data = await response.json();
+                        setContextStatus(data.status);
+                    }
+                } catch (error) {
+                    console.error('Failed to get context status:', error);
+                }
+            };
+
+            const loadMessages = async (model) => {
+                try {
+                    const response = await fetch(`/api/messages?model=${encodeURIComponent(model)}`, {
+                        credentials: 'include'
+                    });
+                    if (response.ok) {
+                        const data = await response.json();
+                        setMessages(data.messages);
+                    }
+                } catch (error) {
+                    console.error('Failed to load messages:', error);
+                }
+            };
+
+            const saveMessages = async (model, messages) => {
+                try {
+                    await fetch('/api/messages', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        credentials: 'include',
+                        body: JSON.stringify({ model, messages }),
+                    });
+                } catch (error) {
+                    console.error('Failed to save messages:', error);
+                }
+            };
+
+            const resetContext = async () => {
+                try {
+                    const response = await fetch('/api/context/reset', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        credentials: 'include',
+                        body: JSON.stringify({ model: selectedModel }),
+                    });
+                    if (response.ok) {
+                        const data = await response.json();
+                        setContextStatus(data.status);
+                        setMessages([]); // Очищаем сообщения в UI
+                        alert('Контекст сброшен');
+                    } else {
+                        alert('Ошибка сброса контекста');
+                    }
+                } catch (error) {
+                    alert('Network error');
+                }
+            };
+
+            useEffect(() => {
+                if (user) {
+                    updateContextStatus(selectedModel);
+                    loadMessages(selectedModel);
+                }
+            }, [selectedModel, user]);
+
+            const sendMessage = async () => {
+                if (!currentMessage.trim() || isLoading) return;
+
+                const userMessage = { role: 'user', content: currentMessage };
+                setMessages(prev => [...prev, userMessage]);
                 setCurrentMessage('');
+                setIsLoading(true);
+
+                try {
+                    const response = await fetch('/api/chat', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        credentials: 'include',
+                        body: JSON.stringify({ message: currentMessage, model: selectedModel }),
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        const aiMessage = { role: 'assistant', content: data.response };
+                        const updatedMessages = [...messages, userMessage, aiMessage];
+                        setMessages(updatedMessages);
+                        saveMessages(selectedModel, updatedMessages); // Сохраняем на сервер
+                        if (data.context_status) {
+                            setContextStatus(data.context_status);
+                        }
+                    } else {
+                        const error = await response.json();
+                        const errorMessage = { role: 'assistant', content: `Error: ${error.error}` };
+                        setMessages(prev => [...prev, errorMessage]);
+                    }
+                } catch (error) {
+                    const errorMessage = { role: 'assistant', content: 'Network error occurred' };
+                    setMessages(prev => [...prev, errorMessage]);
+                } finally {
+                    setIsLoading(false);
+                }
             };
 
             if (!user) {
-                // Login form can be re-integrated here if needed
-                return <div>Please log in</div>;
+                return (
+                    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+                        <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
+                            <div className="text-center mb-6">
+                                <div className="flex items-center justify-center mb-4">
+                                    <span className="text-2xl mr-2">📊</span>
+                                    <h1 className="text-2xl font-bold text-gray-900">Business Analytics</h1>
+                                </div>
+                                <p className="text-gray-600">
+                                    Advanced analytics platform for business intelligence
+                                </p>
+                            </div>
+                            <form onSubmit={handleLogin} className="space-y-4">
+                                <div>
+                                    <input
+                                        type="text"
+                                        placeholder="Username"
+                                        value={loginForm.username}
+                                        onChange={(e) => setLoginForm({...loginForm, username: e.target.value})}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        required
+                                    />
+                                </div>
+                                <div>
+                                    <input
+                                        type="password"
+                                        placeholder="Password"
+                                        value={loginForm.password}
+                                        onChange={(e) => setLoginForm({...loginForm, password: e.target.value})}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        required
+                                    />
+                                </div>
+                                <button type="submit" className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 flex items-center justify-center">
+                                    <span className="mr-2">👤</span>
+                                    Login
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                );
             }
 
             return (
-                <div className="flex h-screen bg-gray-100 font-sans">
-                    {/* Sidebar */}
-                    <div className="w-64 bg-gray-800 text-white flex flex-col">
-                        <div className="px-6 py-4 border-b border-gray-700 flex items-center">
-                            <div className="w-8 h-8 bg-gray-600 rounded flex items-center justify-center mr-3">
-                                <i className="fas fa-chart-line"></i>
+                <div className="min-h-screen bg-gray-50">
+                    <header className="bg-white border-b border-gray-200 px-6 py-4">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center">
+                                <span className="text-2xl mr-3">📊</span>
+                                <div>
+                                    <h1 className="text-xl font-semibold text-gray-900">Business Analytics Platform</h1>
+                                    <p className="text-sm text-gray-500">Advanced AI-powered insights</p>
+                                </div>
                             </div>
-                            <h1 className="text-lg font-semibold">Business Analytics</h1>
-                        </div>
-                        <nav className="flex-1 px-4 py-4 space-y-2">
-                            <a href="#" className="flex items-center px-4 py-2 text-sm font-medium rounded-md bg-gray-900">
-                                <i className="fas fa-home w-6 text-center mr-3"></i>
-                                Dashboard
-                            </a>
-                            <a href="#" className="flex items-center px-4 py-2 text-sm font-medium rounded-md hover:bg-gray-700">
-                                <i className="fas fa-chart-pie w-6 text-center mr-3"></i>
-
-                                Analytics
-                            </a>
-                            <a href="#" className="flex items-center px-4 py-2 text-sm font-medium rounded-md hover:bg-gray-700">
-                                <i className="fas fa-database w-6 text-center mr-3"></i>
-                                Data Sources
-                            </a>
-                            <a href="#" className="flex items-center px-4 py-2 text-sm font-medium rounded-md hover:bg-gray-700">
-                                <i className="fas fa-cog w-6 text-center mr-3"></i>
-                                Settings
-                            </a>
-                        </nav>
-                    </div>
-
-                    {/* Main Content */}
-                    <div className="flex-1 flex flex-col">
-                        {/* Header */}
-                        <header className="bg-white border-b border-gray-200 px-6 py-3 flex justify-end items-center">
                             <div className="flex items-center space-x-4">
-                                <button className="text-gray-500 hover:text-gray-700">
-                                    <i className="fas fa-bell"></i>
-                                </button>
-                                <div className="w-8 h-8 bg-gray-300 rounded-full"></div>
+                                <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs flex items-center">
+                                    <span className="mr-1">📈</span>
+                                    Active
+                                </span>
+                                <div className="flex items-center space-x-2">
+                                    <span className="text-sm text-gray-600">Welcome, {user.username}</span>
+                                    <button onClick={handleLogout} className="border border-gray-300 text-gray-700 px-3 py-1 rounded-md text-sm hover:bg-gray-50 flex items-center">
+                                        <span className="mr-2">🚪</span>
+                                        Logout
+                                    </button>
+                                </div>
                             </div>
-                        </header>
+                        </div>
+                    </header>
 
-                        {/* Chat Area */}
-                        <div className="flex-1 p-6 flex flex-col">
-                            <div className="flex items-center justify-between mb-4">
-                                <div className="flex items-center space-x-4">
-                                    <span className="text-sm text-gray-600">AI Model:</span>
+                    <div className="flex h-[calc(100vh-80px)]">
+                        <div className="w-80 bg-white border-r border-gray-200 p-6">
+                            <div className="mb-6">
+                                <h2 className="text-lg font-semibold text-gray-900 mb-2">Analytics Assistant</h2>
+                                <p className="text-sm text-gray-600">
+                                    Get insights, analyze data, and generate reports using our AI assistant.
+                                </p>
+                            </div>
+
+                            <div className="space-y-4">
+                                <div className="bg-gray-50 p-4 rounded-lg">
+                                    <h3 className="text-sm font-medium text-gray-900 mb-3">AI Model</h3>
                                     <select
                                         value={selectedModel}
                                         onChange={(e) => setSelectedModel(e.target.value)}
-                                        className="px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     >
                                         {models.map((model) => (
                                             <option key={model.id} value={model.id}>
@@ -111,64 +295,118 @@
                                             </option>
                                         ))}
                                     </select>
-                                    <span className="text-sm text-gray-600">{contextStatus}</span>
-                                </div>
-                                <button
-                                    onClick={resetContext}
-                                    className="text-sm bg-gray-200 text-gray-700 px-4 py-1.5 rounded-md hover:bg-gray-300"
-                                >
-                                    Сбросить
-                                </button>
-                            </div>
-
-                            <h2 className="text-xl font-semibold text-gray-800 mb-6">
-                                AI Assistant - {models.find(m => m.id === selectedModel)?.name || selectedModel}
-                            </h2>
-
-                            <div className="flex-1 overflow-y-auto pr-4 space-y-6">
-                                {messages.map((message, index) => (
-                                    <div key={index} className={`flex items-start gap-4 ${message.role === 'user' ? 'justify-end' : ''}`}>
-                                        {message.role === 'assistant' && <div className="w-8 h-8 bg-gray-700 rounded-full flex items-center justify-center text-white flex-shrink-0"><i className="fas fa-robot"></i></div>}
-                                        <div className={`max-w-[70%] p-4 rounded-lg ${
-                                            message.role === 'user'
-                                                ? 'bg-gray-800 text-white'
-                                                : 'bg-white border border-gray-200'
-                                        }`}>
-                                            <p className="text-sm">{message.content}</p>
-                                        </div>
-                                        {message.role === 'user' && <div className="w-8 h-8 bg-gray-300 rounded-full flex-shrink-0"></div>}
+                                    <div className="mt-3 flex items-center justify-between">
+                                        <span className="text-xs text-gray-600">{contextStatus}</span>
+                                        <button
+                                            onClick={resetContext}
+                                            className="text-xs bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600"
+                                        >
+                                            Сбросить
+                                        </button>
                                     </div>
-                                ))}
-                                {/* Data card example */}
-                                <div className="flex items-start gap-4">
-                                    <div className="w-8 h-8 bg-gray-700 rounded-full flex items-center justify-center text-white flex-shrink-0"><i className="fas fa-robot"></i></div>
-                                    <div className="bg-white border border-gray-200 rounded-lg p-4 w-full max-w-[70%]">
-                                        <div className="flex justify-between items-center mb-2">
-                                            <span className="text-sm font-medium text-gray-600">Общая выручка</span>
-                                            <span className="text-lg font-semibold text-gray-800">$2,450,000</span>
-                                        </div>
-                                        <div className="w-full bg-gray-200 rounded-full h-2 mb-4">
-                                            <div className="bg-blue-600 h-2 rounded-full" style={{ width: '75%' }}></div>
-                                        </div>
-                                        <div className="flex justify-between text-center">
-                                            <div>
-                                                <p className="text-lg font-semibold">1,234</p>
-                                                <p className="text-xs text-gray-500">Заказы</p>
-                                            </div>
-                                            <div>
-                                                <p className="text-lg font-semibold text-green-600">+15%</p>
-                                                <p className="text-xs text-gray-500">Рост</p>
-                                            </div>
-                                            <div>
-                                                <p className="text-lg font-semibold">$1,987</p>
-                                                <p className="text-xs text-gray-500">Средний чек</p>
-                                            </div>
-                                        </div>
+                                </div>
+
+                                <div className="bg-gray-50 p-4 rounded-lg">
+                                    <h3 className="text-sm font-medium text-gray-900 mb-3">Quick Actions</h3>
+                                    <div className="space-y-2">
+                                        <button
+                                            className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md flex items-center"
+                                            onClick={() => setCurrentMessage('Analyze sales trends for this quarter')}
+                                        >
+                                            <span className="mr-2">📈</span>
+                                            Sales Analysis
+                                        </button>
+                                        <button
+                                            className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md flex items-center"
+                                            onClick={() => setCurrentMessage('Generate a market research report')}
+                                        >
+                                            <span className="mr-2">📊</span>
+                                            Market Research
+                                        </button>
+                                        <button
+                                            className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md flex items-center"
+                                            onClick={() => setCurrentMessage('Create a business strategy presentation')}
+                                        >
+                                            <span className="mr-2">💬</span>
+                                            Strategy Planning
+                                        </button>
                                     </div>
                                 </div>
                             </div>
+                        </div>
 
-                            {/* Input area is missing in the screenshot, can be added back if needed */}
+                        <div className="flex-1 flex flex-col">
+                            <div className="flex-1 p-6">
+                                <div className="bg-white rounded-lg shadow-sm h-full flex flex-col border border-gray-200">
+                                    <div className="p-6 border-b border-gray-200">
+                                        <h2 className="text-lg font-semibold text-gray-900 flex items-center">
+                                            <span className="text-blue-600 mr-2">🤖</span>
+                                            AI Assistant - {models.find(m => m.id === selectedModel)?.name || selectedModel}
+                                        </h2>
+                                        <p className="text-sm text-gray-600 mt-1">
+                                            Ask questions about business analytics, data insights, or request reports
+                                        </p>
+                                    </div>
+                                    <div className="flex-1 flex flex-col p-6">
+                                        <div className="flex-1 overflow-y-auto pr-4">
+                                            {messages.length === 0 ? (
+                                                <div className="flex items-center justify-center h-full text-gray-500">
+                                                    <div className="text-center">
+                                                        <span className="text-5xl mb-4 block">🤖</span>
+                                                        <p>Start a conversation with the AI assistant</p>
+                                                        <p className="text-sm mt-2">Ask about analytics, trends, or business insights</p>
+                                                    </div>
+                                                </div>
+                                            ) : (
+                                                <div className="space-y-4">
+                                                    {messages.map((message, index) => (
+                                                        <div key={index} className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                                                            <div className={`max-w-[80%] p-3 rounded-lg ${
+                                                                message.role === 'user'
+                                                                    ? 'bg-blue-600 text-white'
+                                                                    : 'bg-gray-100 text-gray-900'
+                                                            }`}>
+                                                                <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                    {isLoading && (
+                                                        <div className="flex justify-start">
+                                                            <div className="bg-gray-100 p-3 rounded-lg">
+                                                                <div className="flex items-center space-x-2">
+                                                                    <div className="animate-spin h-4 w-4 border-2 border-gray-400 border-t-transparent rounded-full"></div>
+                                                                    <span className="text-sm text-gray-600">AI is thinking...</span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        <hr className="my-4 border-gray-200" />
+
+                                        <div className="flex space-x-2">
+                                            <input
+                                                type="text"
+                                                placeholder="Ask about analytics, trends, or business insights..."
+                                                value={currentMessage}
+                                                onChange={(e) => setCurrentMessage(e.target.value)}
+                                                onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
+                                                disabled={isLoading}
+                                                className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            />
+                                            <button
+                                                onClick={sendMessage}
+                                                disabled={isLoading || !currentMessage.trim()}
+                                                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center"
+                                            >
+                                                <span>📤</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
