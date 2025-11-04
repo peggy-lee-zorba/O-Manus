@@ -1,14 +1,22 @@
 import os
 from flask import Flask, send_from_directory
+from datetime import timedelta
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
+from flask_session import Session
 
 app = Flask(__name__, static_folder='src/static')
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-secret-key')
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'sqlite:///app.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
+app.config['SESSION_TYPE'] = 'sqlalchemy'
+app.config['SESSION_SQLALCHEMY'] = db
+app.config['SESSION_PERMANENT'] = True
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=7)
+
 CORS(app, supports_credentials=True)
+Session(app)
 
 # Initialize database
 from src.routes.user import db
