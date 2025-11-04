@@ -282,29 +282,6 @@
                             </div>
 
                             <div className="space-y-4">
-                                <div className="bg-gray-50 p-4 rounded-lg">
-                                    <h3 className="text-sm font-medium text-gray-900 mb-3">AI Model</h3>
-                                    <select
-                                        value={selectedModel}
-                                        onChange={(e) => setSelectedModel(e.target.value)}
-                                        className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    >
-                                        {models.map((model) => (
-                                            <option key={model.id} value={model.id}>
-                                                {model.name}
-                                            </option>
-                                        ))}
-                                    </select>
-                                    <div className="mt-3 flex items-center justify-between">
-                                        <span className="text-xs text-gray-600">{contextStatus}</span>
-                                        <button
-                                            onClick={resetContext}
-                                            className="text-xs bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600"
-                                        >
-                                            Сбросить
-                                        </button>
-                                    </div>
-                                </div>
 
                                 <div className="bg-gray-50 p-4 rounded-lg">
                                     <h3 className="text-sm font-medium text-gray-900 mb-3">Quick Actions</h3>
@@ -338,14 +315,30 @@
                         <div className="flex-1 flex flex-col">
                             <div className="flex-1 p-6">
                                 <div className="bg-white rounded-lg shadow-sm h-full flex flex-col border border-gray-200">
-                                    <div className="p-6 border-b border-gray-200">
-                                        <h2 className="text-lg font-semibold text-gray-900 flex items-center">
-                                            <span className="text-blue-600 mr-2">🤖</span>
-                                            AI Assistant - {models.find(m => m.id === selectedModel)?.name || selectedModel}
-                                        </h2>
-                                        <p className="text-sm text-gray-600 mt-1">
-                                            Ask questions about business analytics, data insights, or request reports
-                                        </p>
+                                    <div className="p-4 border-b border-gray-200 flex items-center justify-between">
+                                        <div className="flex items-center space-x-4">
+                                            <span className="text-sm font-medium text-gray-700">AI Model:</span>
+                                            <select
+                                                value={selectedModel}
+                                                onChange={(e) => setSelectedModel(e.target.value)}
+                                                className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            >
+                                                {models.map((model) => (
+                                                    <option key={model.id} value={model.id}>
+                                                        {model.name}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                        <div className="flex items-center space-x-4">
+                                            <span className="text-sm text-gray-600">{contextStatus}</span>
+                                            <button
+                                                onClick={resetContext}
+                                                className="text-sm bg-gray-200 text-gray-700 px-4 py-1.5 rounded-md hover:bg-gray-300"
+                                            >
+                                                Сбросить
+                                            </button>
+                                        </div>
                                     </div>
                                     <div className="flex-1 flex flex-col p-6">
                                         <div className="flex-1 overflow-y-auto pr-4">
